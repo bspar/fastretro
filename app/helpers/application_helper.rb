@@ -7,9 +7,8 @@ module ApplicationHelper
   end
 
   def analytics_tag
-    return unless Rails.env.production? || ENV["ANALYTICS"] == "true"
-
-    tag.script(defer: true, src: "https://analytics.cengizg.com/script.js", "data-website-id": "610f328e-d047-4aeb-9570-2535bd072670", nonce: content_security_policy_nonce)
+    # Keep the upstream layout hook, but never load third-party analytics.
+    nil
   end
 
   def icon_tag(name, **options)

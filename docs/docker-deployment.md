@@ -1,21 +1,22 @@
 ## Deploying with Docker
 
-We provide pre-built Docker images that can be used to run Fast Retro on your own server.
+Build this privacy-hardened fork from source:
 
-If you don't need to change the source code, and just want the out-of-the-box Fast Retro experience, this can be a great way to get started.
+```sh
+docker build -t bspar-fastretro:local .
+```
 
-You'll find the latest version of Fast Retro's Docker image at `ghcr.io/jangocg/fastretro`.
-To run it you'll need three things: a machine that runs Docker; a mounted volume (so that your database is stored somewhere that is kept around between restarts); and some environment variables for configuration.
+Do not use the upstream `ghcr.io/jangocg/fastretro` image: it lacks this fork's privacy patches. Read [Private self-hosting](private-self-hosting.md) before deployment. To run the app, you need Docker, persistent storage and explicit private hostname/mail settings.
 
 ### Mounting a storage volume
 
-The standard Fast Retro setup keeps all of its storage inside the path `/rails/storage`.
+This fork defaults to local uploads and keeps its SQLite databases and uploads inside `/rails/storage`. Selecting `ACTIVE_STORAGE_SERVICE=s3` explicitly moves attachments to the configured object-storage service; those need separate backups.
 By default Docker containers don't persist storage between runs, so you'll want to mount a persistent volume into that location.
 
 The simplest way to do this is with the `--volume` flag with `docker run`. For example:
 
 ```sh
-docker run --volume fastretro:/rails/storage ghcr.io/jangocg/fastretro
+docker run --volume fastretro:/rails/storage bspar-fastretro:local
 ```
 
 That will create a named volume (called `fastretro`) and mount it into the correct path.
@@ -28,7 +29,7 @@ Check the Docker documentation to find out more about what's available.
 
 To configure your Fast Retro installation, you can use environment variables.
 Fast Retro has several of them.
-Many of these are optional, but at a minimum you'll want to configure your secret key, your SSL domain, and your SMTP email settings.
+At a minimum configure `SECRET_KEY_BASE`, `APP_HOST`, `MAILER_FROM_ADDRESS` and `SMTP_ADDRESS`. Set `SAAS=false` explicitly and use an internal SMTP server if email must stay private. `SITE_FEEDBACK_EMAIL` optionally enables feedback to your own support mailbox.
 
 #### Secret Key Base
 
@@ -45,37 +46,37 @@ bin/rails secret
 Once you have one, set it in the `SECRET_KEY_BASE` environment variable:
 
 ```sh
-docker run --environment SECRET_KEY_BASE=abcdefabcdef ...
+docker run --env SECRET_KEY_BASE=abcdefabcdef ...
 ```
 
 #### SSL
 
 If you want the Fast Retro container to handle its own SSL automatically, you just need to specify the domain name that you're running it on.
+Automatic TLS contacts a public ACME service. For VPN-only hosting, prefer a private TLS-terminating proxy and leave `TLS_DOMAIN` unset.
 You can do that with the `TLS_DOMAIN` environment variable.
 Note that if you're using SSL, you'll want to allow traffic on ports 80 and 443.
 So if you were running on `retro.example.com` you could enable SSL like this:
 
 ```sh
-docker run --publish 80:80 --publish 443:443 --environment TLS_DOMAIN=retro.example.com ...
+docker run --publish 80:80 --publish 443:443 --env TLS_DOMAIN=retro.example.com ...
 ```
 
 If you are terminating SSL in some other proxy in front of Fast Retro, then you don't need to set `TLS_DOMAIN`, and can just publish port 80:
 
 ```sh
-docker run --publish 80:80 ...
+docker run --publish 127.0.0.1:8080:80 ...
 ```
 
 If you aren't using SSL at all (for example, if you want to run it locally on your laptop) then you should specify `DISABLE_SSL=true` instead:
 
 ```sh
-docker run --publish 80:80 --environment DISABLE_SSL=true ...
+docker run --publish 127.0.0.1:8080:80 --env DISABLE_SSL=true ...
 ```
 
 #### SMTP Email
 
 Fast Retro needs to be able to send email for its magic link sign in flow.
-The easiest way to set this up is to use a 3rd-party email provider (such as AWS SES, Postmark, Sendgrid, and so on).
-You can then plug all your SMTP settings from that provider into Fast Retro via the following environment variables:
+Use an internal SMTP server for private hosting. A third-party email provider receives recipients, login codes and message bodies. Configure the selected server with:
 
 - `MAILER_FROM_ADDRESS` - the "from" address that Fast Retro should use to send email
 - `SMTP_ADDRESS` - the address of the SMTP server you'll send through
@@ -125,16 +126,18 @@ Here's an example of a `docker-compose.yml` that you could use to run Fast Retro
 ```yaml
 services:
   web:
-    image: ghcr.io/jangocg/fastretro
+    build: .
+    image: bspar-fastretro:local
     restart: unless-stopped
     ports:
-      - "80:80"
-      - "443:443"
+      - "127.0.0.1:8080:80"
     environment:
       - SECRET_KEY_BASE=your-secret-key-base
-      - MAILER_FROM_ADDRESS=retro@example.com
-      - SMTP_ADDRESS=email-smtp.eu-central-1.amazonaws.com
-      - SMTP_AUTHENTICATION=login
+      - SAAS=false
+      - SKIP_TELEMETRY=true
+      - APP_HOST=retro.internal.example
+      - MAILER_FROM_ADDRESS=retro@internal.example
+      - SMTP_ADDRESS=mail.internal.example
       - SMTP_USERNAME=your-smtp-username
       - SMTP_PASSWORD=your-smtp-password
       - SOLID_QUEUE_IN_PUMA=true
@@ -146,3 +149,4 @@ volumes:
 ```
 
 Replace the placeholder values with your actual configuration before running.
+Run this example from the repository root, behind a private TLS-terminating proxy. Back up the storage volume and preserve `SECRET_KEY_BASE` before upgrades. This example does not install an egress firewall; enforce permitted destinations separately.

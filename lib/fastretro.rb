@@ -49,6 +49,11 @@ module FastRetro
     # @param value [Boolean] whether to enable SaaS mode
     attr_writer :saas
 
+    # Feedback and support contact the instance operator, never the upstream author.
+    def site_feedback_email
+      ENV["SITE_FEEDBACK_EMAIL"].presence
+    end
+
     # Pricing configuration for the subscription plan.
     # Override these values via environment variables in production.
     def pricing

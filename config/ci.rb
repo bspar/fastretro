@@ -11,6 +11,8 @@ CI.run do
 
   step "Style: Ruby", "bin/rubocop"
 
+  step "Privacy: Self-hosted production", "env RAILS_ENV=production SAAS=false SECRET_KEY_BASE_DUMMY=1 ANALYTICS=true DISABLE_CSP=false SENTRY_DSN=https://public@example.invalid/1 STRIPE_SECRET_KEY=sk_test_inherited bin/rails runner script/check_self_hosted_privacy.rb"
+
   step "Security: Gem audit", "bin/bundler-audit check --update"
   step "Security: Importmap audit", "bin/importmap audit"
   step "Security: Brakeman audit", "bin/brakeman --quiet --no-pager --exit-on-warn --exit-on-error --skip-files fizzy/"
@@ -28,7 +30,7 @@ CI.run do
 
   step "Tests: Seeds", "env RAILS_ENV=test bin/rails db:seed:replant"
 
-  step "Tests: JS", "npm install --silent --no-audit --no-fund && npm test"
+  step "Tests: JS", "npm ci --silent --no-audit --no-fund && npm test"
 
   # Optional: set a green GitHub commit status to unblock PR merge.
   # Requires the `gh` CLI and `gh extension install basecamp/gh-signoff`.

@@ -3,6 +3,7 @@ require "ostruct"
 
 class Stripe::WebhooksControllerTest < ActionDispatch::IntegrationTest
   setup do
+    FastRetro.stubs(:saas?).returns(true)
     @account = accounts(:one)
     @subscription = @account.create_subscription! \
       plan_key: "monthly_v1",

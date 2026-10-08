@@ -25,6 +25,16 @@ module ActiveSupport
       Prosopite.finish
       Current.clear_all
     end
+
+    private
+      # Temporarily set ENV variables for a test block.
+      def with_env(env_vars)
+        original_values = env_vars.keys.to_h { |key| [ key, ENV[key] ] }
+        env_vars.each { |key, value| ENV[key] = value }
+        yield
+      ensure
+        original_values.each { |key, value| ENV[key] = value }
+      end
   end
 end
 
@@ -36,15 +46,6 @@ class ActionDispatch::IntegrationTest
   end
 
   private
-    # Temporarily set ENV variables for a test block
-    def with_env(env_vars)
-      original_values = env_vars.keys.to_h { |key| [ key, ENV[key] ] }
-      env_vars.each { |key, value| ENV[key] = value }
-      yield
-    ensure
-      original_values.each { |key, value| ENV[key] = value }
-    end
-
     def without_action_dispatch_exception_handling
       original = Rails.application.config.action_dispatch.show_exceptions
       Rails.application.config.action_dispatch.show_exceptions = :none

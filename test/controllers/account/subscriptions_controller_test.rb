@@ -3,6 +3,7 @@ require "ostruct"
 
 class Account::SubscriptionsControllerTest < ActionDispatch::IntegrationTest
   setup do
+    FastRetro.stubs(:saas?).returns(true)
     sign_in_as users(:one) # owner
   end
 

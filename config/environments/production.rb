@@ -1,14 +1,11 @@
 require "active_support/core_ext/integer/time"
+require_relative "../../lib/fastretro"
 
 Rails.application.configure do
   # Settings specified here will take precedence over those in config/application.rb.
 
   # CSP: Allow form submissions to Stripe Checkout and Billing Portal
-  config.x.content_security_policy.form_action = "https://checkout.stripe.com https://billing.stripe.com"
-
-  # CSP: Allow analytics scripts (Umami, Cloudflare)
-  config.x.content_security_policy.script_src = "https://analytics.cengizg.com https://static.cloudflareinsights.com"
-  config.x.content_security_policy.connect_src = "https://analytics.cengizg.com https://cloudflareinsights.com"
+  config.x.content_security_policy.form_action = "https://checkout.stripe.com https://billing.stripe.com" if FastRetro.saas?
 
   # Email provider Settings
   #
@@ -46,8 +43,8 @@ Rails.application.configure do
   # Enable serving of images, stylesheets, and JavaScripts from an asset server.
   # config.asset_host = "http://assets.example.com"
 
-  # Store uploaded files in S3-compatible object storage.
-  config.active_storage.service = :s3
+  # Keep uploads alongside the SQLite databases unless private S3 is selected.
+  config.active_storage.service = ENV.fetch("ACTIVE_STORAGE_SERVICE", "local").to_sym
 
   # Assume all access to the app is happening through a SSL-terminating reverse proxy unless specifically told otherwise.
   config.assume_ssl = ENV["DISABLE_SSL"] != "true"
@@ -84,7 +81,7 @@ Rails.application.configure do
 
   # Set host to be used by links generated in mailer templates.
   config.action_mailer.default_url_options = {
-    host: ENV.fetch("APP_HOST", "fastretro.app"),
+    host: ENV.fetch("APP_HOST", "localhost"),
     protocol: "https"
   }
 

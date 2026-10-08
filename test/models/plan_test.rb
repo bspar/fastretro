@@ -3,6 +3,7 @@ require "ostruct"
 
 class PlanTest < ActiveSupport::TestCase
   setup do
+    FastRetro.stubs(:saas?).returns(true)
     Rails.cache.clear
   end
 
@@ -14,6 +15,15 @@ class PlanTest < ActiveSupport::TestCase
     plan = Plan.new(key: :free_custom, name: "Free", price: 0, retro_limit: 10)
 
     assert_equal 0, plan.price_for_display
+  end
+
+  test "self-hosted pricing never queries Stripe even with credentials configured" do
+    FastRetro.stubs(:saas?).returns(false)
+    plan = Plan.new(key: :custom, name: "Custom", price: 29.99, retro_limit: Float::INFINITY, stripe_price_id: "price_test_123")
+    Stripe.stubs(:api_key).returns("sk_test_123")
+    Stripe::Price.expects(:retrieve).never
+
+    assert_equal 29.99, plan.price_for_display
   end
 
   test "price_for_display raises when paid plan has no stripe price id" do
