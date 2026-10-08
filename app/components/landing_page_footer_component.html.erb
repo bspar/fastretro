@@ -33,7 +33,9 @@
       </ul>
       <ul class="space-y-2">
         <li class="font-bold mb-2 text-black">CONTACT</li>
-        <li><a href="mailto:support@fastretro.app" class="hover:bg-black hover:text-white px-1">EMAIL</a></li>
+        <% if FastRetro.site_feedback_email %>
+          <li><%= mail_to FastRetro.site_feedback_email, "EMAIL", class: "hover:bg-black hover:text-white px-1" %></li>
+        <% end %>
       </ul>
       <ul class="space-y-2">
         <li class="font-bold mb-2 text-black">COMPARE</li>

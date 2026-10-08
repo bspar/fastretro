@@ -65,7 +65,7 @@ class Plan
   end
 
   def price_for_display
-    return price if free?
+    return price if free? || !FastRetro.saas?
     raise StripePriceUnavailableError, "Stripe price is not configured." unless stripe_price_id.present?
     raise StripePriceUnavailableError, "Stripe API key is missing." unless Stripe.api_key.present?
 

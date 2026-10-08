@@ -56,12 +56,12 @@ Rails.application.configure do
     policy.connect_src :self, *sources.(:connect_src)
     policy.frame_src :self, *sources.(:frame_src)
 
-    # Don't fight user tools: permit inline styles, data:/https: sources, and
-    # blob: workers for accessibility extensions, privacy tools, and custom fonts.
+    # Local attachments and inline resources work without contacting remote hosts.
+    # Explicit CSP_* additions can allow an operator's private storage endpoint.
     policy.style_src :self, :unsafe_inline, *sources.(:style_src)
-    policy.img_src :self, "blob:", "data:", "https:", *sources.(:img_src)
-    policy.font_src :self, "data:", "https:", *sources.(:font_src)
-    policy.media_src :self, "blob:", "data:", "https:", *sources.(:media_src)
+    policy.img_src :self, "blob:", "data:", *sources.(:img_src)
+    policy.font_src :self, "data:", *sources.(:font_src)
+    policy.media_src :self, "blob:", "data:", *sources.(:media_src)
     policy.worker_src :self, "blob:", *sources.(:worker_src)
 
     # Security-critical defaults (not configurable)
@@ -77,4 +77,4 @@ Rails.application.configure do
 
   # Report violations without enforcing the policy.
   config.content_security_policy_report_only = report_only
-end unless ENV["DISABLE_CSP"]
+end unless ENV["DISABLE_CSP"] == "true"

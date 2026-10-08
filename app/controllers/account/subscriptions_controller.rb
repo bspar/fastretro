@@ -1,4 +1,6 @@
 class Account::SubscriptionsController < ApplicationController
+  include SaasOnly
+
   before_action :ensure_admin
   before_action :set_stripe_session, only: :show
 

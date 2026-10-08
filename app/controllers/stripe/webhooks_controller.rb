@@ -1,4 +1,6 @@
 class Stripe::WebhooksController < ApplicationController
+  include SaasOnly
+
   allow_unauthenticated_access
   skip_before_action :require_account
   skip_forgery_protection

@@ -1,4 +1,6 @@
 <div class="px-4 text-center mx-auto my-8 text-gray-500 text-sm">
   <strong class="whitespace-nowrap"><span class="align-middle">FastRetro</span></strong> &mdash; Fast and simple retrospectives for your team.
-  Need help? <%= mail_to "support@fastretro.app", "Send us an email", class: "text-blue-600 underline hover:brightness-90" %>.
+  <% if FastRetro.site_feedback_email %>
+    Need help? <%= mail_to FastRetro.site_feedback_email, "Send us an email", class: "text-blue-600 underline hover:brightness-90" %>.
+  <% end %>
 </div>

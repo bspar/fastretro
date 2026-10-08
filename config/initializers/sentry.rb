@@ -2,7 +2,7 @@
 
 # Sentry error tracking configuration.
 #
-# Only enabled in non-local environments (production, staging) when
+# Only enabled in SaaS mode in non-local environments (production, staging) when
 # SENTRY_DSN is provided. Can be disabled by setting SKIP_TELEMETRY=true.
 #
 # Required environment variables:
@@ -14,7 +14,7 @@
 #
 # @see https://docs.sentry.io/platforms/ruby/guides/rails/
 #
-if !Rails.env.local? && ENV["SKIP_TELEMETRY"].blank? && ENV["SENTRY_DSN"].present?
+if FastRetro.saas? && !Rails.env.local? && ENV["SKIP_TELEMETRY"].blank? && ENV["SENTRY_DSN"].present?
   Sentry.init do |config|
     # DSN from environment variable (NEVER hardcode this)
     config.dsn = ENV["SENTRY_DSN"]

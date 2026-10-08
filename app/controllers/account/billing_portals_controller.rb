@@ -1,4 +1,6 @@
 class Account::BillingPortalsController < ApplicationController
+  include SaasOnly
+
   before_action :ensure_admin
   before_action :ensure_subscribed_account
 

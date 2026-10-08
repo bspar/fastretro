@@ -1,20 +1,18 @@
 require "test_helper"
 
 class RichTextHelperTest < ActionView::TestCase
-  test "bare gif links render as inline images" do
+  test "bare gif links stay links without contacting remote image hosts" do
     html = link_html("https://media0.giphy.com/media/abc123/giphy.gif")
 
     output = embed_gif_links(html)
 
-    assert_dom_equal <<~HTML.strip, output
-      <p><img src="https://media0.giphy.com/media/abc123/giphy.gif" alt="GIF" title="https://media0.giphy.com/media/abc123/giphy.gif" loading="lazy" referrerpolicy="no-referrer" class="gif-embed"></p>
-    HTML
+    assert_equal html, output
   end
 
-  test "gif urls with query params render as inline images" do
-    output = embed_gif_links(link_html("https://media.tenor.com/abc/dance.gif?width=200"))
+  test "gif urls with query params stay links" do
+    html = link_html("https://media.tenor.com/abc/dance.gif?width=200")
 
-    assert_match %r{<img[^>]+src="https://media\.tenor\.com/abc/dance\.gif\?width=200"}, output
+    assert_equal html, embed_gif_links(html)
   end
 
   test "text links to gifs stay links" do
@@ -65,14 +63,15 @@ class RichTextHelperTest < ActionView::TestCase
     assert_equal html, embed_gif_links(html)
   end
 
-  test "uppercase gif extension renders as inline image" do
-    assert_match %r{<img[^>]+class="gif-embed"}, embed_gif_links(link_html("https://example.com/fun.GIF"))
+  test "uppercase gif extension stays a link" do
+    html = link_html("https://example.com/fun.GIF")
+    assert_equal html, embed_gif_links(html)
   end
 
-  test "multiple gif links all render as inline images" do
+  test "multiple gif links all stay links" do
     html = link_html("https://example.com/a.gif") + link_html("https://example.com/b.gif")
 
-    assert_equal 2, embed_gif_links(html).scan("<img").size
+    assert_equal html, embed_gif_links(html)
   end
 
   test "unparseable html passes through untouched" do
@@ -86,13 +85,14 @@ class RichTextHelperTest < ActionView::TestCase
     assert_equal "<p>no links here</p>", embed_gif_links("<p>no links here</p>")
   end
 
-  test "rendered rich text embeds bare gif links through the content layout" do
+  test "rendered rich text preserves bare gif links through the content layout" do
     feedback = feedbacks(:one)
     feedback.update!(content: '<p><a href="https://example.com/fun.gif">https://example.com/fun.gif</a></p>')
 
     html = feedback.content.to_s
 
-    assert_match %r{<img[^>]+class="gif-embed"}, html
+    assert_no_match %r{<img}, html
+    assert_match 'href="https://example.com/fun.gif"', html
   end
 
   private

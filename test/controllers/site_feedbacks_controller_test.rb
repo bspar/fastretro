@@ -1,6 +1,31 @@
 require "test_helper"
 
 class SiteFeedbacksControllerTest < ActionDispatch::IntegrationTest
+  setup do
+    FastRetro.stubs(:site_feedback_email).returns("retro-support@internal.example")
+  end
+
+  test "feedback is unavailable without an explicitly configured destination" do
+    FastRetro.stubs(:site_feedback_email).returns(nil)
+
+    untenanted do
+      get new_site_feedback_path
+      assert_response :not_found
+
+      assert_no_enqueued_emails do
+        post site_feedback_path, params: { message: "Private information", email: "user@example.com" }
+      end
+      assert_response :not_found
+    end
+  end
+
+  test "feedback form shows the actual configured recipient" do
+    untenanted { get new_site_feedback_path }
+
+    assert_in_body "retro-support@internal.example"
+    assert_not_includes response.body, "support@fastretro.app"
+  end
+
   test "unauthenticated user can access feedback form" do
     untenanted do
       get new_site_feedback_path

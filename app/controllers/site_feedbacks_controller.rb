@@ -1,6 +1,7 @@
 class SiteFeedbacksController < ApplicationController
   disallow_account_scope
   allow_unauthenticated_access
+  before_action :require_feedback_destination
   rate_limit to: 5, within: 10.minutes, only: :create, with: -> { redirect_to new_site_feedback_path, alert: t("flash.too_many_submissions") }
 
   layout "application"
@@ -30,4 +31,9 @@ class SiteFeedbacksController < ApplicationController
 
     redirect_to new_site_feedback_path, notice: t("flash.feedback_thanks")
   end
+
+  private
+    def require_feedback_destination
+      head :not_found unless FastRetro.site_feedback_email
+    end
 end
