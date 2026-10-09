@@ -8,12 +8,22 @@ class SessionsController < ApplicationController
   layout "auth"
 
   def new
-    @authentication_options = passkey_authentication_options
+    if FastRetro.name_only?
+      render :name_only
+    else
+      @authentication_options = passkey_authentication_options
+    end
   end
 
   def create
-    if identity = Identity.find_by_email_address(email_address)
-      sign_in identity
+    if FastRetro.name_only?
+      recover_by_token
+    elsif identity = Identity.find_by_email_address(email_address)
+      if identity.name_only?
+        redirect_to_fake_session_magic_link email_address
+      else
+        sign_in identity
+      end
     elsif Account.accepting_signups?
       sign_up
     else
@@ -27,6 +37,16 @@ class SessionsController < ApplicationController
   end
 
   private
+    def recover_by_token
+      if identity = Identity.find_by_recovery_token(params.expect(:recovery_token).to_s.strip)
+        start_new_session_for identity
+        redirect_to after_authentication_url
+      else
+        flash.now[:alert] = "Invalid recovery token. Use your original browser or ask your facilitator for a new invite."
+        render :name_only, status: :unprocessable_entity
+      end
+    end
+
     def sign_in(identity)
       redirect_to_session_magic_link identity.send_magic_link
     end

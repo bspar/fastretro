@@ -43,6 +43,8 @@
             <div class="text-xs font-mono font-bold uppercase tracking-wider">
               <% if !@user.active? %>
                 <span class="text-red-600"><%= t("users.show.inactive_member") %></span>
+              <% elsif @user.identity&.name_only? %>
+                <span class="text-zinc-600">Name-only identity</span>
               <% elsif !@user.verified? %>
                 <span class="text-amber-600"><%= t("users.show.email_pending") %></span>
                 <p class="text-[0.7rem] text-zinc-500 mt-1 max-w-xs normal-case tracking-normal">
@@ -64,6 +66,10 @@
        <% if Current.user == @user %>
         <div class="w-full h-[2px] bg-zinc-200 my-2"></div>
 
+        <% if FastRetro.name_only? && @user.identity.name_only? %>
+          <%= link_to "Recovery token", my_recovery_token_path(script_name: nil), class: "w-full p-3 border-[2px] border-zinc-900 font-bold text-sm", data: { turbo: false } %>
+        <% end %>
+
         <%= link_to my_passkeys_path, class: "w-full flex items-center justify-between p-3 bg-white border-[2px] border-zinc-900 hover:-translate-y-0.5 hover:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition-all" do %>
           <span class="font-bold text-xs text-zinc-900 uppercase tracking-widest"><%= t("users.show.manage_passkeys") %></span>
           <span class="text-zinc-400 font-black">&rarr;</span>
@@ -74,7 +80,7 @@
         </div>
 
         <div class="w-full flex justify-center pt-6">
-           <%= button_to session_url, method: :delete, class: "group relative inline-flex items-center justify-center px-6 py-2 bg-white text-zinc-900 border-[2px] border-zinc-900 font-bold uppercase tracking-widest text-xs hover:bg-red-600 hover:text-white hover:border-red-600 transition-colors", data: { turbo: false } do %>
+            <%= button_to session_url(script_name: nil), method: :delete, class: "group relative inline-flex items-center justify-center px-6 py-2 bg-white text-zinc-900 border-[2px] border-zinc-900 font-bold uppercase tracking-widest text-xs hover:bg-red-600 hover:text-white hover:border-red-600 transition-colors", data: { turbo: false } do %>
              <%= t("users.show.sign_out") %>
            <% end %>
         </div>

@@ -7,6 +7,11 @@ class LandingPageController < ApplicationController
   before_action :redirect_authenticated_user_to_session_menu
 
   def show
+    if FastRetro.name_only?
+      redirect_to new_session_path(script_name: nil)
+      return
+    end
+
     @free_limit = Plan.free.retro_limit
     @paid_price = Plan.paid.price_for_display
   rescue Plan::StripePriceUnavailableError

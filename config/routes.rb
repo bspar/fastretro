@@ -99,6 +99,7 @@ Rails.application.routes.draw do
 
   # My namespace for nav menu and user-specific resources
   namespace :my do
+    resource :recovery_token, only: %i[ show create ]
     resource :menu
     resource :passkey_challenge, only: :create
     resources :passkeys, except: %i[ show new ]

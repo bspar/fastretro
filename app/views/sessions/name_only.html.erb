@@ -1,0 +1,21 @@
+<% content_for :title, "Welcome to FastRetro" %>
+<% content_for :head do %>
+  <meta name="turbo-cache-control" content="no-cache">
+<% end %>
+
+<div class="max-w-md mx-auto px-4 py-8 font-sans">
+  <div class="bg-white border-[3px] border-zinc-900 shadow-[8px_8px_0px_0px_rgba(20,20,23,0.8)] p-8 space-y-6">
+    <h1 class="text-2xl font-black uppercase tracking-tight">Welcome to FastRetro</h1>
+    <p class="text-sm text-zinc-600">Your browser remembers you. To join a retro for the first time, open the facilitator's invite link and enter your name.</p>
+
+    <%= link_to "Create a new team", new_signup_path, class: "block px-6 py-3 bg-zinc-900 text-white text-center font-bold uppercase", data: { turbo: false } %>
+
+    <h2 class="font-bold">Restore an existing identity</h2>
+    <p class="text-sm text-zinc-600">Use your saved recovery token on a new browser or after signing out. A name alone cannot restore access.</p>
+    <%= form_with url: session_path, data: { turbo: false }, class: "space-y-4" do |form| %>
+      <%= form.label :recovery_token, "Recovery token", class: "block text-xs font-bold uppercase tracking-widest" %>
+      <%= form.password_field :recovery_token, required: true, maxlength: 46, autocomplete: "off", spellcheck: false, class: "w-full px-4 py-3 border-[2px] border-zinc-900 bg-white font-mono" %>
+      <%= form.submit "Restore access", class: "w-full px-6 py-3 bg-zinc-900 text-white font-bold uppercase cursor-pointer" %>
+    <% end %>
+  </div>
+</div>

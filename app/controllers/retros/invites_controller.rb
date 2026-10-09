@@ -16,11 +16,26 @@ class Retros::InvitesController < ApplicationController
     elsif authenticated?
       # Authenticated but not a member - join the account via join code
       join_account_and_redirect
+    elsif FastRetro.name_only?
+      session[:return_to_after_authenticating] = request.path
+      render "shared/name_only_join", locals: { heading: "Join #{@retro.name}", join_url: retro_invite_path(code: @join_code.code, retro_id: @retro.id) }
     end
     # Otherwise, render the form
   end
 
   def create
+    if FastRetro.name_only?
+      signup = Signup.new(full_name: params[:full_name].to_s.strip)
+      if signup.join_by_name(@join_code, identity: Current.identity) { |user| @retro.add_participant(user) }
+        start_new_session_for signup.identity unless authenticated?
+        session.delete(:return_to_after_authenticating)
+        redirect_to retro_path(@retro, script_name: @join_code.account.slug)
+      else
+        head :unprocessable_entity
+      end
+      return
+    end
+
     @join_code.redeem_if { |account| @identity.join(account) }
     user = User.active.find_by!(account: @join_code.account, identity: @identity)
 
@@ -66,6 +81,8 @@ class Retros::InvitesController < ApplicationController
   end
 
   def set_identity
+    return if FastRetro.name_only?
+
     @identity = Identity.find_or_initialize_by(email_address: params.expect(:email_address))
 
     if @identity.new_record?

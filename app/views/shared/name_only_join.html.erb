@@ -1,0 +1,19 @@
+<% content_for :title, heading %>
+
+<div class="max-w-md mx-auto px-4 py-8 font-sans">
+  <div class="bg-white border-[3px] border-zinc-900 shadow-[8px_8px_0px_0px_rgba(20,20,23,0.8)] p-8 space-y-6">
+    <h1 class="text-2xl font-black uppercase tracking-tight"><%= heading %></h1>
+    <p class="text-sm text-zinc-600">Enter your display name to join immediately. No email or verification needed.</p>
+
+    <%= form_with url: join_url, data: { turbo: false }, class: "space-y-6" do |form| %>
+      <div>
+        <%= form.label :full_name, "Your name", class: "block text-xs font-bold uppercase tracking-widest mb-2" %>
+        <%= form.text_field :full_name, required: true, maxlength: 100, autofocus: true, autocomplete: "name", class: "w-full px-4 py-3 border-[2px] border-zinc-900 bg-white" %>
+      </div>
+      <%= form.submit "Join", class: "w-full px-6 py-3 bg-zinc-900 text-white font-bold uppercase cursor-pointer" %>
+    <% end %>
+
+    <p class="text-sm text-zinc-600">This browser remembers your identity. On another browser, use a recovery token or join as a new participant.</p>
+    <%= link_to "Restore an existing identity", new_session_path(script_name: nil), class: "block text-sm underline", data: { turbo: false } %>
+  </div>
+</div>
