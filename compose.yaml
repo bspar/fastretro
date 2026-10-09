@@ -1,0 +1,126 @@
+name: fastretro
+
+services:
+  proxy:
+    image: nginxinc/nginx-unprivileged:stable-alpine@sha256:15c994d10d6d78658721c3bcafff14cb281fba2a4bdf9d5ba92c416a472516e3
+    restart: unless-stopped
+    depends_on:
+      web:
+        condition: service_healthy
+      mailpit:
+        condition: service_healthy
+    ports:
+      - "${FASTRETRO_BIND_ADDRESS:-127.0.0.1}:${FASTRETRO_PORT:-8080}:8080"
+      - "127.0.0.1:8025:8025"
+    volumes:
+      - ./deploy/nginx.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      - ingress
+      - private
+    dns:
+      - 127.0.0.1
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp:uid=101,gid=101
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:8080/up"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
+
+  web:
+    build: .
+    image: bspar-fastretro:local
+    restart: unless-stopped
+    depends_on:
+      mailpit:
+        condition: service_healthy
+    environment:
+      RAILS_ENV: production
+      SECRET_KEY_BASE: ${SECRET_KEY_BASE:?Generate a fresh SECRET_KEY_BASE in .env}
+      APP_HOST: ${APP_HOST:?Set the private browser hostname or IP and port in .env}
+      MAILER_FROM_ADDRESS: ${MAILER_FROM_ADDRESS:?Set the local sender in .env}
+      SAAS: "false"
+      NAME_ONLY_AUTH: ${NAME_ONLY_AUTH:-false}
+      SKIP_TELEMETRY: "true"
+      ACTIVE_STORAGE_SERVICE: local
+      DISABLE_SSL: "true"
+      SOLID_QUEUE_IN_PUMA: "true"
+      SMTP_ADDRESS: mailpit
+      SMTP_PORT: "1025"
+      SMTP_DOMAIN: localhost
+      SMTP_AUTHENTICATION: ""
+    volumes:
+      - storage:/rails/storage
+    networks:
+      - private
+    dns:
+      - 127.0.0.1
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /rails/tmp:uid=1000,gid=1000
+      - /rails/log:uid=1000,gid=1000
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://127.0.0.1/up"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
+
+  mailpit:
+    image: axllent/mailpit:v1.31.4@sha256:b68349e3a014b90c5610bfb26b2ae36f3892d7b8cf25ee140c6c71c98d2fcf48
+    restart: unless-stopped
+    environment:
+      MP_DATABASE: /data/mailpit.db
+      MP_DISABLE_VERSION_CHECK: "true"
+      MP_SMTP_DISABLE_RDNS: "true"
+      MP_BLOCK_REMOTE_CSS_AND_FONTS: "true"
+      MP_MAX_AGE: 7d
+      MP_MAX_MESSAGES: "500"
+    volumes:
+      - mail:/data
+    networks:
+      - private
+    dns:
+      - 127.0.0.1
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
+
+networks:
+  ingress:
+  private:
+    internal: true
+
+volumes:
+  storage:
+  mail:

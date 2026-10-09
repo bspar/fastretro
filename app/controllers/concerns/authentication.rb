@@ -96,6 +96,8 @@ module Authentication
     def terminate_session
       Current.session.destroy
       cookies.delete(:session_token)
+      session.delete(:name_only_recovery_token)
+      session.delete(:return_to_after_authenticating)
     end
 
     def session_token

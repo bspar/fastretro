@@ -1,5 +1,5 @@
 class Identity < ApplicationRecord
-  include Joinable, Transferable
+  include Joinable, Transferable, NameOnlyAuthenticatable
 
   has_passkeys name: :email_address, display_name: -> { Current.user&.name || email_address }
 
@@ -14,6 +14,8 @@ class Identity < ApplicationRecord
   normalizes :email_address, with: ->(value) { value.strip.downcase.presence }
 
   def send_magic_link(**attributes)
+    raise ArgumentError, "Email login is unavailable for name-only identities" if name_only? || FastRetro.name_only?
+
     attributes[:purpose] = attributes.delete(:for) if attributes.key?(:for)
 
     magic_links.create!(attributes).tap do |magic_link|

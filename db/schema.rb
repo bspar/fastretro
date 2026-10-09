@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_15_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_08_160000) do
   create_table "account_billing_waivers", force: :cascade do |t|
     t.integer "account_id", null: false
     t.datetime "created_at", null: false
@@ -163,9 +163,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_15_120000) do
   create_table "identities", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "email_address", null: false
+    t.boolean "name_only", default: false, null: false
+    t.string "recovery_token_digest"
     t.boolean "staff", default: false, null: false
     t.datetime "updated_at", null: false
     t.index ["email_address"], name: "index_identities_on_email_address", unique: true
+    t.index ["recovery_token_digest"], name: "index_identities_on_recovery_token_digest", unique: true
   end
 
   create_table "magic_links", force: :cascade do |t|

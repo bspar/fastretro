@@ -7,7 +7,8 @@ complete dependency audit.
 
 ## Required production settings
 
-Use fresh secrets and configure your own destinations before deployment:
+Use fresh secrets and configure your own destinations before deployment. These
+mail settings apply to the default email-login mode:
 
 ```dotenv
 SAAS=false
@@ -19,7 +20,7 @@ SMTP_PORT=587
 SOLID_QUEUE_IN_PUMA=true
 ```
 
-Supply a strong `SECRET_KEY_BASE` separately. Production mail fails before
+Supply a strong `SECRET_KEY_BASE` separately in every mode. Production email-login mail fails before
 rendering or delivery if the hostname, sender or SMTP address is missing. There
 is no fallback to `fastretro.app` or its support mailbox. Keep Sentry and Stripe
 credentials unset even though both integrations are gated off in self-hosted
@@ -29,6 +30,12 @@ Magic-link login still requires email. Use an internal SMTP relay/mail sink and
 restrict recipients there if mail must not leave your network. The relay receives
 login codes, confirmation tokens and email contents. `SHOW_MAGIC_LINK_CODE` is
 not a supported production substitute for mail.
+
+Alternatively, opt into [name-only authentication](name-only-authentication.md)
+with `NAME_ONLY_AUTH=true` on a trusted VPN/LAN. Signup and invites then use display
+names and browser sessions, with recovery tokens instead of email login. That
+mode suppresses all mail delivery, feedback and retrospective reminders; SMTP is
+not required. It is ignored in SaaS mode and does not convert existing identities.
 
 Feedback and support links are disabled until `SITE_FEEDBACK_EMAIL` is set to
 your own mailbox. The form shows that actual recipient. Submissions include the

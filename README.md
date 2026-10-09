@@ -20,6 +20,12 @@ If you want to run your own Fast Retro instance, you can use Docker or deploy wi
 
 ### Docker
 
+For a single-box deployment with a local login-email inbox, use the included
+`compose.yaml` and [Compose deployment guide](docs/compose-deployment.md).
+
+For trusted VPN/LAN use, opt into [name-only signup and recovery tokens](docs/name-only-authentication.md)
+with `NAME_ONLY_AUTH=true`. Email authentication remains the default.
+
 Build this fork from source with `docker build -t bspar-fastretro:local .`. The upstream `ghcr.io/jangocg/fastretro` image does **not** contain these patches. See the [Docker deployment guide](docs/docker-deployment.md).
 
 ### Kamal

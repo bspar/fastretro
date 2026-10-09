@@ -73,6 +73,12 @@ Fast Retro uses **URL path-based multi-tenancy**:
 - Sessions managed via signed cookies
 - `Current` thread-local attributes (session, identity, user, account) set per-request
 
+**Optional private name-only authentication** (`NAME_ONLY_AUTH=true`, OSS only):
+- Signup/invites accept a display name and create unique internal identities, not identities looked up by name
+- Browser sessions persist; owners get a recovery token, and participants can generate one from their profile
+- Recovery tokens are digest-backed, shown once, and replacement revokes other sessions
+- Email delivery/reminders/feedback are disabled; see `docs/name-only-authentication.md`
+
 ### Core Domain Models
 
 **Account** → The tenant/organization

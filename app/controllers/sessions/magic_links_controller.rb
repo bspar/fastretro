@@ -4,6 +4,7 @@ class Sessions::MagicLinksController < ApplicationController
   rate_limit to: 10, within: 15.minutes, only: :create, with: :rate_limit_exceeded
   rate_limit to: 5, within: 5.minutes, only: :resend, with: :resend_rate_limit_exceeded
   before_action :ensure_that_email_address_pending_authentication_exists
+  before_action -> { head :not_found if FastRetro.name_only? }
 
   layout "auth"
 

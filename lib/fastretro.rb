@@ -49,9 +49,14 @@ module FastRetro
     # @param value [Boolean] whether to enable SaaS mode
     attr_writer :saas
 
+    # Name-only identities are intended for trusted, private self-hosting only.
+    def name_only?
+      ENV["NAME_ONLY_AUTH"] == "true" && !saas?
+    end
+
     # Feedback and support contact the instance operator, never the upstream author.
     def site_feedback_email
-      ENV["SITE_FEEDBACK_EMAIL"].presence
+      ENV["SITE_FEEDBACK_EMAIL"].presence unless name_only?
     end
 
     # Pricing configuration for the subscription plan.

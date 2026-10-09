@@ -19,11 +19,13 @@ Rails.application.configure do
       domain: ENV.fetch("SMTP_DOMAIN", nil),
       user_name: ENV.fetch("SMTP_USERNAME", nil),
       password: ENV.fetch("SMTP_PASSWORD", nil),
-      authentication: ENV.fetch("SMTP_AUTHENTICATION", "plain"),
+      authentication: ENV.fetch("SMTP_AUTHENTICATION", ENV["SMTP_USERNAME"].present? ? "plain" : nil).presence,
       tls: ENV["SMTP_TLS"] == "true",
       openssl_verify_mode: ENV["SMTP_SSL_VERIFY_MODE"]
     }
   end
+
+  config.action_mailer.perform_deliveries = !FastRetro.name_only?
 
   # Code is not reloaded between requests.
   config.enable_reloading = false
@@ -82,7 +84,7 @@ Rails.application.configure do
   # Set host to be used by links generated in mailer templates.
   config.action_mailer.default_url_options = {
     host: ENV.fetch("APP_HOST", "localhost"),
-    protocol: "https"
+    protocol: ENV["DISABLE_SSL"] == "true" ? "http" : "https"
   }
 
 

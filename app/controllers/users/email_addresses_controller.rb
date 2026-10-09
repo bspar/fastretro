@@ -1,5 +1,6 @@
 class Users::EmailAddressesController < ApplicationController
   before_action :set_user
+  before_action -> { head :not_found if FastRetro.name_only? || @user.identity.name_only? }
   rate_limit to: 5, within: 1.hour, only: :create
 
   def new

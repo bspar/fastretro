@@ -281,7 +281,9 @@ class Retro < ApplicationRecord
     end
 
     def schedule_retention_reminder
-      Retro::RetentionReminderJob.set(wait: 7.days).perform_later(self)
+      unless FastRetro.name_only? || facilitator&.identity&.name_only?
+        Retro::RetentionReminderJob.set(wait: 7.days).perform_later(self)
+      end
     end
 
     def completed_phase_after_update?
@@ -290,6 +292,8 @@ class Retro < ApplicationRecord
 
     def retention_reminder_due?
       complete? &&
+        !FastRetro.name_only? &&
+        !facilitator&.identity&.name_only? &&
         retention_reminder_sent_at.blank? &&
         facilitator&.identity&.email_address.present? &&
         actions.published.exists? &&
